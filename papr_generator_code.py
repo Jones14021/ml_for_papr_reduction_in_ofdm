@@ -21,7 +21,7 @@ import time
 MAX_SAMPLES = 100000
 filename_raw_bits = 'raw_bit_sequence_training_50000.npy'
 
-file_id_output = 3
+file_id_output = 4
 
 filename_papr_data = "papr_data_" + str(file_id_output) + ".dat"
 filename_raw_data_real = "raw_data_real_" + str(file_id_output) + ".dat"
@@ -29,8 +29,8 @@ filename_raw_data_imaginary = "raw_data_imaginary_" + str(file_id_output) + ".da
 
 K = 256 # number of OFDM subcarriers
 CLIPPING_AND_FILTERING_ACTIVE = True
-CLIPPING_RATIO = 1.4
-title_info = "16qam_" + str(K) + "_subcarriers_clipping_1.4_and_filtering"
+CLIPPING_RATIO = 2
+title_info = "16qam_" + str(K) + "_subcarriers_clipping_2_and_filtering"
 
 
 
