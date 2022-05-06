@@ -249,7 +249,6 @@ for i in range(number_of_samples):
         OFDM_time = butter_lowpass_filter(OFDM_time, cutoff, fs, order)
 
 
-
     # compute the PAPR of the time-domain signal sample
     power_peak = max(np.square(abs(OFDM_time)))
     power_mean = np.mean(np.square(abs(OFDM_time)), dtype=np.float64)
