@@ -27,6 +27,8 @@ filename_papr_data = "papr_data_" + str(file_id_output) + ".dat"
 filename_raw_data_real = "raw_data_real_" + str(file_id_output) + ".dat"
 filename_raw_data_imaginary = "raw_data_imaginary_" + str(file_id_output) + ".dat"
 
+filename_training_data = "training_data_" + str(file_id_output) + ".csv"
+
 K = 256 # number of OFDM subcarriers
 CLIPPING_AND_FILTERING_ACTIVE = True
 CLIPPING_RATIO = 2
@@ -195,6 +197,8 @@ for i in range(number_of_samples):
     OFDM_time = IDFT(OFDM_data)
     #print ("Number of OFDM samples in time-domain before CP: ", len(OFDM_time))
 
+    # save this original OFDM_time for training
+    OFDM_time_unaltered = OFDM_time
     # %%
     # OFDM_time is one complex OFDM sample which will correspond to one PAPR value
 
@@ -271,18 +275,44 @@ for i in range(number_of_samples):
     # now OFDM_time contains the complex values of the signal that is to be sent over the wireless channel
 
     # we save the raw data in a file to train the ML algorithm with it
-    ## append to file
-    my_file = open(filename_raw_data_real, "a")
-    real_values = np.real(OFDM_time)
-    for value in real_values:
-        my_file.write(str(value) + "\n")
-    my_file.close()
+    # ## append to file
+    # my_file = open(filename_raw_data_real, "a")
+    # real_values = np.real(OFDM_time)
+    # for value in real_values:
+    #     my_file.write(str(value) + "\n")
+    # my_file.close()
 
-    ## append to file
-    my_file = open(filename_raw_data_imaginary, "a")
+    # ## append to file
+    # my_file = open(filename_raw_data_imaginary, "a")
+    # imag_values = np.imag(OFDM_time)
+    # for value in imag_values:
+    #     my_file.write(str(value) + "\n")
+    # my_file.close()
+
+    my_file = open(filename_training_data, "a")
+
     imag_values = np.imag(OFDM_time)
     for value in imag_values:
         my_file.write(str(value) + "\n")
+
+    real_values = np.real(OFDM_time)
+    for value in real_values:
+        my_file.write(str(value) + "\n")
+
+    imag_values_unaltered = np.imag(OFDM_time_unaltered)
+    real_values_unaltered = np.real(OFDM_time_unaltered)
+    imag_values_processed = np.imag(OFDM_time)
+    real_values_processed = np.real(OFDM_time)
+
+    csv_line = ''
+
+    for i in range(real_values_unaltered):
+        csv_line = str(real_values_unaltered[i]) + ',' + str(imag_values_unaltered[i]) + ',' + ...
+        str(real_values_processed[i]) + ',' + str(imag_values_processed[i])
+        
+
+
+
     my_file.close()
 
 print("Total number of samples generated: " + str(number_of_samples))
