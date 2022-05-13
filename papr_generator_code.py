@@ -21,7 +21,7 @@ import time
 MAX_SAMPLES = 100000
 filename_raw_bits = 'raw_bit_sequence_training_50000.npy'
 
-file_id_output = 4
+file_id_output = 5
 
 filename_papr_data = "papr_data_" + str(file_id_output) + ".dat"
 filename_raw_data_real = "raw_data_real_" + str(file_id_output) + ".dat"
@@ -31,7 +31,7 @@ filename_training_data = "training_data_" + str(file_id_output) + ".csv"
 
 K = 256 # number of OFDM subcarriers
 CLIPPING_AND_FILTERING_ACTIVE = True
-CLIPPING_RATIO = 2
+CLIPPING_RATIO = 2.4
 title_info = "16qam_" + str(K) + "_subcarriers_clipping_2_and_filtering"
 
 
@@ -45,6 +45,10 @@ my_file.close()
 
 # clear file
 my_file = open(filename_raw_data_real, "w")
+my_file.close()
+
+# clear file
+my_file = open(filename_training_data, "w")
 my_file.close()
 
 # clear file
@@ -291,13 +295,7 @@ for i in range(number_of_samples):
 
     my_file = open(filename_training_data, "a")
 
-    imag_values = np.imag(OFDM_time)
-    for value in imag_values:
-        my_file.write(str(value) + "\n")
-
-    real_values = np.real(OFDM_time)
-    for value in real_values:
-        my_file.write(str(value) + "\n")
+    my_file.write("real,imag,real_proc,imag_proc" + "\n")
 
     imag_values_unaltered = np.imag(OFDM_time_unaltered)
     real_values_unaltered = np.real(OFDM_time_unaltered)
@@ -306,11 +304,9 @@ for i in range(number_of_samples):
 
     csv_line = ''
 
-    for i in range(real_values_unaltered):
-        csv_line = str(real_values_unaltered[i]) + ',' + str(imag_values_unaltered[i]) + ',' + ...
-        str(real_values_processed[i]) + ',' + str(imag_values_processed[i])
-        
-
+    for i in range(1,len(real_values_unaltered)):
+        csv_line = str(real_values_unaltered[i]) + "," + str(imag_values_unaltered[i]) + "," + str(real_values_processed[i]) + "," + str(imag_values_processed[i])
+        my_file.write(csv_line + "\n")
 
 
     my_file.close()
