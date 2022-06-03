@@ -1,0 +1,2 @@
+model_checkpoint_path: "cp_training_weights_only.ckpt"
+all_model_checkpoint_paths: "cp_training_weights_only.ckpt"

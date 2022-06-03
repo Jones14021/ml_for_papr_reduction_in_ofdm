@@ -21,18 +21,21 @@ import time
 MAX_SAMPLES = 100000
 filename_raw_bits = 'raw_bit_sequence_training_50000.npy'
 
-file_id_output = 5
+file_id_output = 8
 
 filename_papr_data = "papr_data_" + str(file_id_output) + ".dat"
 filename_raw_data_real = "raw_data_real_" + str(file_id_output) + ".dat"
 filename_raw_data_imaginary = "raw_data_imaginary_" + str(file_id_output) + ".dat"
 
 filename_training_data = "training_data_" + str(file_id_output) + ".csv"
+my_file = open(filename_training_data, "w")
+my_file.write("real,imag,real_proc,imag_proc" + "\n") # clear and write header
+my_file.close()
 
 K = 256 # number of OFDM subcarriers
 CLIPPING_AND_FILTERING_ACTIVE = True
 CLIPPING_RATIO = 2.4
-title_info = "16qam_" + str(K) + "_subcarriers_clipping_2_and_filtering"
+title_info = "16qam_" + str(K) + "_subcarriers_clipping_2.4_nopilot"
 
 
 
@@ -45,10 +48,6 @@ my_file.close()
 
 # clear file
 my_file = open(filename_raw_data_real, "w")
-my_file.close()
-
-# clear file
-my_file = open(filename_training_data, "w")
 my_file.close()
 
 # clear file
@@ -68,8 +67,8 @@ CP = K//4  # length of the cyclic prefix: 25% of the block
 # The number of pilots P in the OFDM symbol describes, how many carriers are used to transmit known information (i.e. pilots). Pilots will be used at the receiver to estimate the wireless channel between transmitter and receiver. Further, we also define the value that each pilots transmits (which is known to the receiver).
 
 # %%
-P = 8 # number of pilot carriers per OFDM block
-pilotValue = 3+3j # The known value each pilot transmits
+P = 0 # number of pilot carriers per OFDM block (mod. from 8)
+pilotValue = 1 # The known value each pilot transmits (mod. from 3+3j)
 
 # %% [markdown]
 # Now, let us define some index sets that describe which carriers transmit pilots and which carriers contain payload.
@@ -77,17 +76,18 @@ pilotValue = 3+3j # The known value each pilot transmits
 # %%
 allCarriers = np.arange(K)  # indices of all subcarriers ([0, 1, ... K-1])
 
-pilotCarriers = allCarriers[::K//P] # Pilots is every (K/P)th carrier.
+# pilotCarriers = allCarriers[::K//P] # Pilots is every (K/P)th carrier.
 
-# For convenience of channel estimation, let's make the last carriers also be a pilot
-pilotCarriers = np.hstack([pilotCarriers, np.array([allCarriers[-1]])])
-P = P+1
+# # For convenience of channel estimation, let's make the last carriers also be a pilot
+# pilotCarriers = np.hstack([pilotCarriers, np.array([allCarriers[-1]])])
+# P = P+1
 
 # data carriers are all remaining carriers
-dataCarriers = np.delete(allCarriers, pilotCarriers)
+#dataCarriers = np.delete(allCarriers, pilotCarriers)
+dataCarriers = allCarriers
 
 print ("allCarriers:   %s" % allCarriers)
-print ("pilotCarriers: %s" % pilotCarriers)
+#print ("pilotCarriers: %s" % pilotCarriers)
 print ("dataCarriers:  %s" % dataCarriers)
 #plt.plot(pilotCarriers, np.zeros_like(pilotCarriers), 'bo', label='pilot')
 #plt.plot(dataCarriers, np.zeros_like(dataCarriers), 'r', label='data')
@@ -152,12 +152,16 @@ with open(filename_raw_bits, 'rb') as myfile:
 
 number_of_samples = min(MAX_SAMPLES, int(len(totalbits) / payloadBits_per_OFDM))
 print("Expected number of samples generated from raw bits: " + str(number_of_samples))
+my_range = range(number_of_samples)
+print(my_range)
+sample_number = 0
 time.sleep(5)
 
-for i in range(number_of_samples):
+
+for i in my_range:
            
 
-    bits = totalbits[i*payloadBits_per_OFDM:i*payloadBits_per_OFDM+payloadBits_per_OFDM]
+    bits = totalbits[sample_number*payloadBits_per_OFDM:sample_number*payloadBits_per_OFDM+payloadBits_per_OFDM]
 
     # %% [markdown]
     # The bits are now sent to a serial-to-parallel converter, which groups the bits for the OFDM frame into a groups of mu bits (i.e. one group for each subcarrier):
@@ -186,7 +190,7 @@ for i in range(number_of_samples):
     # %%
     def OFDM_symbol(QAM_payload):
         symbol = np.zeros(K, dtype=complex) # the overall K subcarriers
-        symbol[pilotCarriers] = pilotValue  # allocate the pilot subcarriers 
+        #symbol[pilotCarriers] = pilotValue  # allocate the pilot subcarriers 
         symbol[dataCarriers] = QAM_payload  # allocate the pilot subcarriers
         return symbol
     OFDM_data = OFDM_symbol(QAM)
@@ -221,7 +225,7 @@ for i in range(number_of_samples):
 
             arr_i = 0
             for value in array:
-                if value > CLIPPING_THRESHOLD:
+                if abs(value) > CLIPPING_THRESHOLD:
                     value = CLIPPING_THRESHOLD
                     clipped_values_count = clipped_values_count + 1
 
@@ -254,7 +258,7 @@ for i in range(number_of_samples):
             y = filtfilt(b, a, data)
             return y
         
-        OFDM_time = butter_lowpass_filter(OFDM_time, cutoff, fs, order)
+        #OFDM_time = butter_lowpass_filter(OFDM_time, cutoff, fs, order)
 
 
     # compute the PAPR of the time-domain signal sample
@@ -264,7 +268,11 @@ for i in range(number_of_samples):
     # decibel above average power
     PAPR = 10* np.log10(power_peak / power_mean)
 
-    print("PAPR of sample: " + str(PAPR) + " dB")
+    #print("PAPR of sample: " + str(PAPR) + " dB")
+    print("progress: " + str(sample_number)+ "/" +str(number_of_samples))
+
+    # increment counter
+    sample_number=sample_number+1
 
     # %% [markdown]
     # Now, we save the resulting PAPR value to a file for further processing.
@@ -293,9 +301,7 @@ for i in range(number_of_samples):
     #     my_file.write(str(value) + "\n")
     # my_file.close()
 
-    my_file = open(filename_training_data, "a")
-
-    my_file.write("real,imag,real_proc,imag_proc" + "\n")
+    my_file = open(filename_training_data, "a")    
 
     imag_values_unaltered = np.imag(OFDM_time_unaltered)
     real_values_unaltered = np.real(OFDM_time_unaltered)
