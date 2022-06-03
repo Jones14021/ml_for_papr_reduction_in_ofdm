@@ -21,7 +21,7 @@ import time
 MAX_SAMPLES = 100000
 filename_raw_bits = 'raw_bit_sequence_training_50000.npy'
 
-file_id_output = 8
+file_id_output = 9
 
 filename_papr_data = "papr_data_" + str(file_id_output) + ".dat"
 filename_raw_data_real = "raw_data_real_" + str(file_id_output) + ".dat"
